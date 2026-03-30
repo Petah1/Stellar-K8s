@@ -93,6 +93,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 maintenance_mode: false,
                 network_policy: None,
                 dr_config: None,
+                pod_anti_affinity: Default::default(),
                 topology_spread_constraints: None,
                 cve_handling: None,
                 snapshot_schedule: None,
@@ -105,6 +106,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 read_pool_endpoint: None,
                 resource_meta: None,
                 vpa_config: None,
+                custom_network_passphrase: None,
             },
             status: None,
         }
@@ -181,6 +183,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 maintenance_mode: false,
                 network_policy: None,
                 dr_config: None,
+                pod_anti_affinity: Default::default(),
                 topology_spread_constraints: None,
                 cve_handling: None,
                 snapshot_schedule: None,
@@ -193,6 +196,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 read_pool_endpoint: None,
                 resource_meta: None,
                 vpa_config: None,
+                custom_network_passphrase: None,
             },
             status: None,
         }
@@ -267,6 +271,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 maintenance_mode: false,
                 network_policy: None,
                 dr_config: None,
+                pod_anti_affinity: Default::default(),
                 topology_spread_constraints: None,
                 cve_handling: None,
                 snapshot_schedule: None,
@@ -279,6 +284,7 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
                 read_pool_endpoint: None,
                 resource_meta: None,
                 vpa_config: None,
+                custom_network_passphrase: None,
             },
             status: None,
         }
@@ -304,10 +310,17 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             client,
             enable_mtls: false,
             operator_namespace: "stellar-operator".to_string(),
+            watch_namespace: None,
             mtls_config: None,
             dry_run: true,
             is_leader: Arc::new(AtomicBool::new(true)),
+            event_reporter: kube::runtime::events::Reporter {
+                controller: "stellar-operator".to_string(),
+                instance: None,
+            },
             operator_config: Arc::new(Default::default()),
+            reconcile_id_counter: std::sync::atomic::AtomicU64::new(0),
+            last_reconcile_success: Arc::new(std::sync::atomic::AtomicU64::new(0)),
         });
 
         // Test with a retriable error (network-related)
@@ -333,10 +346,17 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             client,
             enable_mtls: false,
             operator_namespace: "stellar-operator".to_string(),
+            watch_namespace: None,
             mtls_config: None,
             dry_run: true,
             is_leader: Arc::new(AtomicBool::new(true)),
+            event_reporter: kube::runtime::events::Reporter {
+                controller: "stellar-operator".to_string(),
+                instance: None,
+            },
             operator_config: Arc::new(Default::default()),
+            reconcile_id_counter: std::sync::atomic::AtomicU64::new(0),
+            last_reconcile_success: Arc::new(std::sync::atomic::AtomicU64::new(0)),
         });
 
         // Test with validation error (non-retriable)
@@ -361,10 +381,17 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             client,
             enable_mtls: false,
             operator_namespace: "stellar-operator".to_string(),
+            watch_namespace: None,
             mtls_config: None,
             dry_run: true,
             is_leader: Arc::new(AtomicBool::new(true)),
+            event_reporter: kube::runtime::events::Reporter {
+                controller: "stellar-operator".to_string(),
+                instance: None,
+            },
             operator_config: Arc::new(Default::default()),
+            reconcile_id_counter: std::sync::atomic::AtomicU64::new(0),
+            last_reconcile_success: Arc::new(std::sync::atomic::AtomicU64::new(0)),
         });
 
         let errors = vec![
@@ -501,27 +528,28 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
         // Test Testnet
         node.spec.network = StellarNetwork::Testnet;
         assert_eq!(
-            node.spec.network.passphrase(),
+            node.spec.network_passphrase(),
             "Test SDF Network ; September 2015"
         );
 
         // Test Mainnet
         node.spec.network = StellarNetwork::Mainnet;
         assert_eq!(
-            node.spec.network.passphrase(),
+            node.spec.network_passphrase(),
             "Public Global Stellar Network ; September 2015"
         );
 
         // Test Futurenet
         node.spec.network = StellarNetwork::Futurenet;
         assert_eq!(
-            node.spec.network.passphrase(),
+            node.spec.network_passphrase(),
             "Test SDF Future Network ; October 2022"
         );
 
         // Test Custom
-        node.spec.network = StellarNetwork::Custom("My Custom Network".to_string());
-        assert_eq!(node.spec.network.passphrase(), "My Custom Network");
+        node.spec.network = StellarNetwork::Custom;
+        node.spec.custom_network_passphrase = Some("My Custom Network".to_string());
+        assert_eq!(node.spec.network_passphrase(), "My Custom Network");
     }
 
     /// Test that validator nodes require quorum set
@@ -581,10 +609,17 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             client: client.clone(),
             enable_mtls: true,
             operator_namespace: "test-namespace".to_string(),
+            watch_namespace: None,
             mtls_config: None,
             dry_run: false,
             is_leader: Arc::new(AtomicBool::new(true)),
+            event_reporter: kube::runtime::events::Reporter {
+                controller: "stellar-operator".to_string(),
+                instance: None,
+            },
             operator_config: Arc::new(Default::default()),
+            reconcile_id_counter: std::sync::atomic::AtomicU64::new(0),
+            last_reconcile_success: Arc::new(std::sync::atomic::AtomicU64::new(0)),
         };
 
         assert_eq!(state.operator_namespace, "test-namespace");
@@ -605,10 +640,17 @@ VALIDATORS=["VALIDATOR1", "VALIDATOR2"]"#
             client,
             enable_mtls: false,
             operator_namespace: "default".to_string(),
+            watch_namespace: None,
             mtls_config: None,
             dry_run: true,
             is_leader: Arc::new(AtomicBool::new(true)),
+            event_reporter: kube::runtime::events::Reporter {
+                controller: "stellar-operator".to_string(),
+                instance: None,
+            },
             operator_config: Arc::new(Default::default()),
+            reconcile_id_counter: std::sync::atomic::AtomicU64::new(0),
+            last_reconcile_success: Arc::new(std::sync::atomic::AtomicU64::new(0)),
         };
 
         assert!(

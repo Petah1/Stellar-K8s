@@ -50,6 +50,7 @@ mod stellar_node_spec_validation {
             maintenance_mode: false,
             network_policy: None,
             dr_config: None,
+            pod_anti_affinity: Default::default(),
             topology_spread_constraints: None,
             cve_handling: None,
             snapshot_schedule: None,
@@ -62,6 +63,7 @@ mod stellar_node_spec_validation {
             resource_meta: None,
             vpa_config: None,
             read_pool_endpoint: None,
+            custom_network_passphrase: None,
         }
     }
 
@@ -100,6 +102,7 @@ mod stellar_node_spec_validation {
             maintenance_mode: false,
             network_policy: None,
             dr_config: None,
+            pod_anti_affinity: Default::default(),
             topology_spread_constraints: None,
             cve_handling: None,
             snapshot_schedule: None,
@@ -112,6 +115,7 @@ mod stellar_node_spec_validation {
             resource_meta: None,
             vpa_config: None,
             read_pool_endpoint: None,
+            custom_network_passphrase: None,
         }
     }
 
@@ -150,6 +154,7 @@ mod stellar_node_spec_validation {
             maintenance_mode: false,
             network_policy: None,
             dr_config: None,
+            pod_anti_affinity: Default::default(),
             topology_spread_constraints: None,
             cve_handling: None,
             snapshot_schedule: None,
@@ -162,6 +167,7 @@ mod stellar_node_spec_validation {
             resource_meta: None,
             vpa_config: None,
             read_pool_endpoint: None,
+            custom_network_passphrase: None,
         }
     }
 
@@ -747,7 +753,8 @@ mod stellar_node_spec_validation {
     #[test]
     fn test_validator_custom_network_passes() {
         let mut spec = valid_validator_spec();
-        spec.network = StellarNetwork::Custom("My Private Network".to_string());
+        spec.network = StellarNetwork::Custom;
+        spec.custom_network_passphrase = Some("My Private Network".to_string());
         assert!(spec.validate().is_ok());
     }
 

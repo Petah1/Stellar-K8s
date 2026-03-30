@@ -41,6 +41,7 @@ mod tests {
             maintenance_mode: false,
             network_policy: None,
             dr_config: None,
+            pod_anti_affinity: Default::default(),
             topology_spread_constraints: None,
             cve_handling: None,
             snapshot_schedule: None,
@@ -53,6 +54,7 @@ mod tests {
             resource_meta: None,
             vpa_config: None,
             read_pool_endpoint: None,
+            custom_network_passphrase: None,
         }
     }
 
@@ -98,6 +100,7 @@ mod tests {
                 maintenance_mode: false,
                 network_policy: None,
                 dr_config: None,
+                pod_anti_affinity: Default::default(),
                 topology_spread_constraints: None,
                 cve_handling: None,
                 snapshot_schedule: None,
@@ -115,6 +118,7 @@ mod tests {
                 resource_meta: None,
                 vpa_config: None,
                 read_pool_endpoint: None,
+            custom_network_passphrase: None,
             },
             status: None,
         }
@@ -158,6 +162,7 @@ mod tests {
                 maintenance_mode: false,
                 network_policy: None,
                 dr_config: None,
+                pod_anti_affinity: Default::default(),
                 topology_spread_constraints: None,
                 db_maintenance_config: None,
                 cve_handling: None,
@@ -170,6 +175,7 @@ mod tests {
                 resource_meta: None,
                 vpa_config: None,
                 read_pool_endpoint: None,
+            custom_network_passphrase: None,
             },
             status: None,
         }
